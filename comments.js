@@ -1,28 +1,30 @@
-// create web server
-var express = require('express');
-var app = express();
-var bodyParser = require('body-parser');
-var fs = require('fs');
+// Create web server
+// Run: node comments.js
+// Access: http://localhost:3000
 
-app.use(bodyParser.json());
+const http = require('http');
+const fs = require('fs');
 
-// get comments
-app.get('/comments', function(req, res) {
-  var comments = fs.readFileSync('comments.json', 'utf8');
-  res.setHeader('Content-Type', 'application/json');
-  res.send(comments);
+const server = http.createServer((req, res) => {
+  if (req.url === '/comments') {
+    fs.readFile('comments.json', 'utf-8', (err, data) => {
+      if (err) {
+        res.writeHead(404);
+        res.end('File not found!');
+        return;
+      }
+      res.writeHead(200, {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      });
+      res.end(data);
+    });
+  } else {
+    res.writeHead(404);
+    res.end('Not found!');
+  }
 });
 
-// post comment
-app.post('/comments', function(req, res) {
-  var comments = JSON.parse(fs.readFileSync('comments.json', 'utf8'));
-  comments.push(req.body);
-  fs.writeFileSync('comments.json', JSON.stringify(comments));
-  res.setHeader('Content-Type', 'application/json');
-  res.send(JSON.stringify(comments));
-});
-
-// create server
-var server = app.listen(3000, function() {
-  console.log('Server running at http://localhost:' + server.address().port);
+server.listen(3000, () => {
+  console.log('Server is running on http://localhost:3000');
 });
